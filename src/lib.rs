@@ -1,9 +1,13 @@
+/// Re-export of the `palette` crate, for convenience.
 pub use palette;
 
 macro_rules! mk_theme_trait {
     ($(
         $name:ident$( = $($alias:expr),*)?;
     )*) => {
+        /// The main trait of this crate.
+        ///
+        /// Contains methods to retrieve a variety of colours for a colour scheme.
         pub trait Theme {
             fn name(&self) -> std::borrow::Cow<str>;
 
@@ -59,27 +63,29 @@ mk_theme_trait!(
     accent_dark;
 );
 
-mod themes {
-    #[macro_export]
-    macro_rules! impl_theme {
-        ($theme_name:ident: $theme_name_str:expr => $(
-            $name:ident = $color:expr;
-        )*) => {
-            pub struct $theme_name;
-            impl $crate::Theme for $theme_name {
-                fn name(&self) -> std::borrow::Cow<str> {
-                    $theme_name_str.into()
-                }
-                $(
-                    fn $name(&self) -> $crate::palette::LinSrgba {
-                        $crate::palette::LinSrgba::<f32>::from($crate::palette::LinSrgba::from($color))
-                    }
-                )*
+/// Easy implementation of the [`Theme`] trait.
+#[macro_export]
+macro_rules! impl_theme {
+    ($vis:vis $theme_name:ident: $theme_name_str:expr => $(
+        $color_name:ident = $color:expr;
+    )*) => {
+        $vis struct $theme_name;
+        impl $crate::Theme for $theme_name {
+            fn name(&self) -> std::borrow::Cow<str> {
+                $theme_name_str.into()
             }
-        };
-    }
+            $(
+                fn $color_name(&self) -> $crate::palette::LinSrgba {
+                    $crate::palette::LinSrgba::<f32>::from($crate::palette::LinSrgba::from($color))
+                }
+            )*
+        }
+    };
+}
 
-    impl_theme!(EverforestDarkHard: "Everforest Dark Hard" =>
+/// Prebuilt themes.
+pub mod themes {
+    impl_theme!(pub EverforestDarkHard: "Everforest Dark Hard" =>
         bg_dim = 0x1e2326ff;
         bg0 = 0x272e33ff;
         bg1 = 0x2e383cff;
